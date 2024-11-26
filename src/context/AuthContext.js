@@ -1,21 +1,34 @@
-import React, { createContext, useContext, useState } from 'react';
-import { auth } from '../firebase';
-import { createUserWithEmailAndPassword , signInWithEmailAndPassword, signOut } from 'firebase/auth';
+// src/context/AuthContext.js
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser ] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
 
-    const signup = (email, password) => createUserWithEmailAndPassword(auth, email, password);
-    const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
-    const logout = () => signOut(auth);
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem('token', token);
+    } else {
+      localStorage.removeItem('token');
+    }
+  }, [token]);
 
-    return (
-        <AuthContext.Provider value={{ user, signup, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const login = (newToken) => {
+    setToken(newToken);
+  };
+
+  const logout = () => {
+    setToken(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ token, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
